@@ -1,5 +1,4 @@
 *.iml
 .idea/
-tsconfig.json
-src/
 *.map
+test/
