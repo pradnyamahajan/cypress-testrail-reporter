@@ -1,5 +1,5 @@
 {
-  "name": "cypress-testrail-reporter",
+  "name": "@bicarbon8/cypress-testrail-reporter",
   "version": "2.0.0",
   "description": "A Testrail reporter for cypress including TestRail API basic library",
   "main": "index.js",
