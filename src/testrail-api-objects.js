@@ -1,13 +1,13 @@
 module.exports = {
   TestRailOptions: {
-    domain: null,
+    host: null,
     username: null,
     password: null,
     projectId: -1,
     suiteId: null,
     suiteIds: [],
     assignedToId: null,
-    usePlan: null,
+    createPlan: null,
     runName: null
   },
 
@@ -16,7 +16,8 @@ module.exports = {
     Blocked = 2,
     Untested = 3,
     Retest = 4,
-    Failed = 5
+    Failed = 5,
+    Skipped = 9
   },
 
   TestRailResult: {

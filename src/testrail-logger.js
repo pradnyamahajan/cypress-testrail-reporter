@@ -2,11 +2,11 @@ const chalk = require('chalk');
 
 module.exports = {
     log: (text) => {
-        console.log('\n', chalk.default.magenta.underline.bold('(TestRail Reporter)'));
-        console.log('\n', ' - ' + text, '\n');
+        let msgOut = text instanceof Object ? stringify(text, null, 2) : text;
+        console.log(`[${chalk.cyan("testrail Reporter")}] ${msgOut}`);
     },
     warn: (text) => {
-        console.log('\n', chalk.default.magenta.underline.bold('(TestRail Reporter)'));
-        console.warn('\n', ' - ' + text, '\n');
+        let msgOut = text instanceof Object ? stringify(text, null, 2) : text;
+        console.warn(`[${chalk.cyan("testrail Reporter")}] ${msgOut}`);
     }
 }

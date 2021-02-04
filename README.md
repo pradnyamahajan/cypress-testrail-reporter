@@ -4,36 +4,38 @@ Publishes [Cypress](https://www.cypress.io/) runs on TestRail.
 
 ## Install
 
-```shell
-$ npm install @bicarbon8/cypress-testrail-reporter --save-dev
+``` shell
+$ npm install @pradnyamahajan/cypress-testrail-reporter --save-dev
 ```
 
 ## Usage
 
-Add reporter to your `cypress.json`:
+Add reporter to your `cypress.json` :
 
-Ex: using a TestRail Plan containing multiple Suites
+Ex: To use existing TestRail plan for creating TestRail run
 
-```json
+``` json
 ...
 "reporter": "cypress-testrail-reporter",
 "reporterOptions": {
-  "domain": "yourdomain.testrail.com",
+  "host": "https://yourDomain.testrail.com",
   "username": "username",
   "password": "password",
-  "usePlan": true,
   "projectId": 1,
-  "suiteIds": [1, 2, 3],
+  "usePlan": true,  
+  "planId": 1,
+  "suiteId": 1
+
 }
 ```
 
-Ex: using a TestRail Run containing only one Suite
+Ex: To create TestRail runs without TestRail plan
 
-```json
+``` json
 ...
 "reporter": "cypress-testrail-reporter",
 "reporterOptions": {
-  "domain": "yourdomain.testrail.com",
+  "host": "https://yourDomain.testrail.com",
   "username": "username",
   "password": "password",
   "projectId": 1,
@@ -43,19 +45,19 @@ Ex: using a TestRail Run containing only one Suite
 
 Your Cypress tests should include the ID of your TestRail test case. Make sure your test case IDs are distinct from your test titles:
 
-```Javascript
+``` Javascript
 // Good:
 it("C123 C124 Can authenticate a valid user", ...
-it("Can authenticate a valid user C321", ...
+        it("Can authenticate a valid user C321", ...
 
-// Bad:
-it("C123Can authenticate a valid user", ...
-it("Can authenticate a valid userC123", ...
+            // Bad:
+            it("C123Can authenticate a valid user", ...
+                it("Can authenticate a valid userC123", ...
 ```
 
 ## Reporter Options
 
-**domain**: _string_ domain name of your TestRail instance (e.g. for a hosted instance _instance.testrail.com_).
+**host**: _string_ host name of your TestRail instance (e.g. for a hosted instance _instance.testrail.com_).
 
 **username**: _string_ email of the user under which the test run will be created.
 
@@ -63,11 +65,11 @@ it("Can authenticate a valid userC123", ...
 
 **projectId**: _number_ project with which the tests are associated.
 
-**usePlan**: _boolean_ if true a TestRail Plan containing one or more runs will be created based on the values specified for **suiteIds**.
+**usePlan**: _boolean_ if true a TestRail runs will be created under TestRail plan.
 
-**suiteIds**: _number[]_ (required only when **usePlan** is true) the suites with which the tests are associated.
+**planId**: _number_ (required when **usePlan** is true) plan with which the tests are associated.
 
-**suiteId**: _number_ (required when **usePlan** is false or not included) suite with which the tests are associated.
+**suiteId**: _number_ suite with which the tests are associated.
 
 **runName**: _string_ (optional) name of the Testrail run.
 
@@ -83,7 +85,7 @@ You can read the whole TestRail documentation [here](http://docs.gurock.com/).
 
 ## Authors
 
-* Jason Holt Smith - [github](https://github.com/bicarbon8)
+* Pradnya Mahajan - [github](https://github.com/pradnyamahajan)
 
 ## License
 
@@ -91,4 +93,6 @@ This project is licensed under the [MIT license](/LICENSE.md).
 
 ## Acknowledgments
 
-* [Milutin Savovic](https://github.com/mickosav), owner of the [cypress-testrail-reporter](https://github.com/mickosav/cypress-testrail-reporter) repository that was forked.
+* [Milutin Savovic](https://github.com/mickosav), owner of the [cypress-testrail-reporter](https://github.com/mickosav/cypress-testrail-reporter) repository.
+
+* [Jason Holt Smith](https://github.com/bicarbon8), owner of the [cypress-testrail-reporter](https://github.com/mickosav/cypress-testrail-reporter) repository that was forked.

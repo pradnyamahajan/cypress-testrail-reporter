@@ -4,15 +4,15 @@ const TestRailCache = require('./testrail-cache');
 class TestRailApi {
   constructor(options) {
     this.options = options;
-    this.base = `https://${this.options.domain}/index.php?/api/v2`;
+    this.base = `${this.options.host}/index.php?/api/v2`;
     this.runId;
-    this.planId;
+    this.planId = this.options.planId
   }
 
   async createPlan(name, description, milestoneId) {
     var suiteIds = this.options.suiteIds;
     var entries = [];
-    for (var i=0; i<suiteIds.length; i++) {
+    for (var i = 0; i < suiteIds.length; i++) {
       var entry = {
         suite_id: suiteIds[i],
         name: `${name} - Suite ${suiteIds[i]}`,
@@ -32,21 +32,45 @@ class TestRailApi {
     try {
       var plan = await this._post('add_plan', this.options.projectId.toString(), data);
       this.planId = plan.id;
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     };
   };
 
-  async createRun(name, description, suiteId) {
+  async createPlanEntry(name, description, testcaseIds) {
+    var data = {
+      suite_id: this.options.suiteId,
+      name: name,
+      description: description,
+      assignedto_id: this.options.assignedToId,
+      case_ids: testcaseIds,
+      include_all: false,
+      runs: [{
+        case_ids: testcaseIds,
+        include_all: false
+      }]
+    };
+    try {
+      var planEntry = await this._post('add_plan_entry', this.planId.toString(), data);
+      this.runId = planEntry.runs[0].id;
+    } catch (e) {
+      console.error(e);
+    };
+  };
+
+
+  async createRun(name, description, testcaseIds) {
     try {
       var run = await this._post('add_run', this.options.projectId.toString(), {
-        suite_id: suiteId,
-        name,
-        description,
-        include_all: true,
+        suite_id: this.options.suiteId,
+        name: name,
+        description: description,
+        assignedto_id: this.options.assignedToId,
+        include_all: false,
+        case_ids: testcaseIds
       });
       this.runId = run.id;
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     }
   };
@@ -58,91 +82,21 @@ class TestRailApi {
       } else {
         await this._post('delete_run', this.runId.toString());
       }
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     };
   };
 
   async publishResults(results) {
-    if (this.options.usePlan === true) {
-      for(var i=0; i<results.length; i++) {
-        try {
-          var test = await this.getTestByCaseId(results[i].case_id);
-          await this._post('add_result', test.id.toString(), results[i]);
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    } else {
-      try {
-        await this._post('add_results_for_cases', this.runId.toString(), { 
-          results: results
-        });
-      } catch(e) {
-        console.error(e);
-      };
-    }
+    try {
+      await this._post('add_results_for_cases', this.runId.toString(), {
+        results: results
+      });
+    } catch (e) {
+      console.error(e);
+    };
   };
 
-  async getTestByCaseId(caseId) {
-    var runs = await this.getRunsInPlan(this.planId);
-    var runIds = [];
-    for(var i=0; i<runs.length; i++) {
-      runIds.push(runs[i].id);
-    }
-    var tests = await this.getTestsInRuns(...runIds);
-    for(var i=0; i<tests.length; i++) {
-      if (caseId == tests[i].case_id) {
-        return tests[i];
-      }
-    }
-    return null;
-  };
-
-  async getTestsInRuns(...runIds) {
-    // lookup and cache tests
-    var cachedTests = TestRailCache.retrieve('tests');
-    if (!cachedTests || cachedTests.length == 0) {
-      var allTests = [];
-      for (var i=0; i<runIds.length; i++) {
-        var rId = runIds[i];
-        try {
-          var runTests = await this._get('get_tests', rId.toString());
-          for(var i=0; i<runTests.length; i++) {
-            allTests.push(runTests[i]);
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-      cachedTests = allTests;
-      TestRailCache.store('tests', cachedTests);
-    }
-    // return cached tests array
-    return cachedTests;
-  };
-
-  async getRunsInPlan(pId) {
-    // lookup and cache the runs
-    var cachedRuns = TestRailCache.retrieve('runs');
-    if (!cachedRuns || cachedRuns.length == 0) {
-      var r = [];
-      try {
-        var plan = await this._get('get_plan', pId.toString());
-        for(var i=0; i<plan.entries.length; i++) {
-          for(var j=0; j<plan.entries[i].runs.length; j++) {
-            r.push(plan.entries[i].runs[j]);
-          }
-        }
-      } catch(e) {
-        console.error(e);
-      };
-      cachedRuns = r;
-      TestRailCache.store('runs', cachedRuns);
-    }
-    // return cached array of runs
-    return cachedRuns;
-  };
 
   /**
    * sends a GET request to TestRail's API with the passed in action and urlData
@@ -186,7 +140,7 @@ class TestRailApi {
       config['data'] = JSON.stringify(data);
     }
     var responseObj;
-    try{
+    try {
       var resp = await axios(config);
       if (resp.data && resp.data.error) {
         if (new String(resp.data.error).includes('API Rate Limit Exceeded')) {
